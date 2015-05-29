@@ -4,7 +4,7 @@ ez_setup.use_setuptools()
 import platform
 from setuptools import setup, find_packages
 
-from wallp.version import __version__
+from mayserver.version import __version__
 
 
 entry_points = {}
@@ -16,7 +16,7 @@ setup(	name='mayserver',
 	author='Amol Umrale',
 	author_email='babaiscool@gmail.com',
 	url='http://pypi.python.org/pypi/mayserver/',
-	packages=['mayserver'],
+	packages=find_packages(include=['mayserver', 'mayserver.*']),
 	scripts=['ez_setup.py'],
 	entry_points = entry_points,
 	install_requires=[''],
