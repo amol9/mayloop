@@ -1,7 +1,7 @@
 import os
 
 from .message import Message
-from ..server_helper import get_limits
+from ..limits import get_limits
 
 
 #receives simple newline terminated message

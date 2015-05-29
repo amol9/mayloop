@@ -20,14 +20,14 @@ class ServerStats():
 
 
 	def update_open_fds(self):
-		open_fds = None
-		with command('ls /proc/%d/fd | wc -l'%os.getpid()) as cmd:
+		open_fds = 0
+		'''with command('ls /proc/%d/fd | wc -l'%os.getpid()) as cmd:
 			out, r = cmd.execute()
 			if r == 0:
 				open_fds = int(out)
 			else:
 				log.error('unable to obtain open fd count')
-				return
+				return'''
 
 		if open_fds > self.peak_fds:
 			self.peak_fds = open_fds

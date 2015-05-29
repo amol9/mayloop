@@ -10,8 +10,8 @@ class GenericLimits():
 
 class LinuxLimits(GenericLimits):
 	max_select_fds 	= 1024
-	max_open_fds 	= 20
-	fd_buffer 	= 5
+	max_open_fds 	= 1024
+	fd_buffer 	= 10
 
 
 	def fds_full(self, open_fds):

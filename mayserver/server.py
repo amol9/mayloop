@@ -4,13 +4,15 @@ from os.path import exists
 from time import time
 
 from .select_call import SelectCall, SelectError
-from .server_helper import ServerStats, ServerSharedState, LinuxLimits, StartError
+from .stats import ServerStats
+from .limits import get_limits
+from .server_helper import StartError
 from .transport.tcp_connection import TCPConnection, HangUp, ConnectionAbort
 from .transport.address import Address
 from .protocol.telnet_server import TelnetServer
 from .transport.pipe_connection import PipeConnection
-from .protocol.telnet_server_factory import TelnetServerFactory
-#from ..logger import log
+from .factory.telnet_server_factory import TelnetServerFactory
+from .logger import log
 
 
 def scheduled_task_placeholder():
@@ -19,42 +21,42 @@ def scheduled_task_placeholder():
 
 class Server():
 	def __init__(self, config):
-		self._config = config
-		self._servers = []
-		self._server_to_factory = {}
-		#self._shared_state = ServerSharedState()
-		self._limits = LinuxLimits()
-		self._stats = ServerStats()
+		self._config 			= config
+		self._servers 			= []
+		self._server_to_factory 	= {}
+		self._limits 			= get_limits()
+		self._stats 			= ServerStats()
 
-		self._client_list = []
-		self._telnet_client_list = []
+		self._client_list 		= []
+		self._telnet_client_list 	= []
+		self._in_pipes 			= []
 
 
 	def start_server_sockets(self):
 		for service in self._config.services:
-			server = self.create_socket(service.port)
+			server = self.create_socket(service.host, service.port)
+			self._servers.append(server)
 			self._server_to_factory[server] = service.factory
 
-		#self._stats.start_time = time()
 
 
 	def start_telnet_server_socket(self):
 		if self._config.telnet_enabled:
-			self._telnet_server = self.create_socket(self._config.telnet_port)
-			self._server_to_factory[self._telnet_server] = TelnetServerFactory()
+			self._telnet_server = self.create_socket('', self._config.telnet_port)
+			self._server_to_factory[self._telnet_server] = TelnetServerFactory(self)
 
 
-	def create_socket(self, port):
+	def create_socket(self, host, port):
 		try:
 			server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			server.setblocking(0)
-			server.bind(('', port))
+			server.bind((host, port))
 			server.listen(5)
 
 			return server
 		except socket.error as e:
 			if e.errno == 98:
-				msg = 'address %s:%d already in use'%('', port)
+				msg = 'address %s:%d already in use'%(host, port)
 				log.error(msg)
 				raise StartError(msg)
 
@@ -62,6 +64,7 @@ class Server():
 	def start(self):
 		log.info('starting server...')
 
+		self._stats.start_time = time()
 		self.start_server_sockets()
 		self.start_telnet_server_socket()
 		self.start_select_loop()
@@ -94,7 +97,7 @@ class Server():
 
 	def handle_readable(self, readable):
 		for r in readable:
-			if r in self._servers:
+			if r in self._servers or r is self._telnet_server:
 				self.handle_incoming_connection(r)
 			
 			elif r in self.client_list or r in self.telnet_client_list or r in self.in_pipes:
@@ -124,14 +127,14 @@ class Server():
 			if not isinstance(e, ConnectionAbort):
 				t.abortConnection(raiseException=False)
 
-			if isinstance(t.protocol, WallpServer):
+			if t in self.client_list:
 				self._stats.update_client_lifetime(t.get_lifetime())
 				self.client_list.remove(t)
 
-			elif isinstance(t.protocol, TelnetServer):
+			elif t in self.telnet_client_list:
 				self.telnet_client_list.remove(t)
 
-			elif isinstance(t, ChildPipe):
+			elif t in self.in_pipes:
 				self.in_pipes.remove(t)
 
 			else:
@@ -182,7 +185,7 @@ class Server():
 
 
 	def get_in_list(self):
-		wallp_server = [self._server] + self.client_list + self.in_pipes
+		wallp_server = self._servers + self.client_list + self.in_pipes
 		if self._config.telnet_enabled:
 			telnet_server = [self._telnet_server] + self.telnet_client_list
 		else:
@@ -204,7 +207,7 @@ class Server():
 
 
 	def get_in_pipes(self):
-		return self._shared_state.in_pipes
+		return self._in_pipes
 
 
 	def stop(self):

@@ -3,7 +3,7 @@ import socket
 from time import time
 
 from ..imported.twisted.internet_interfaces import ITCPTransport, IReadWriteDescriptor, IConsumer
-from ...logger import log
+from ..logger import log
 
 
 class HangUp(Exception):
