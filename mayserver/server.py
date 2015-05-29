@@ -117,7 +117,7 @@ class Server():
 
 
 	def transport_call(self, func):
-		t = func.im_self
+		t = func.__self__
 
 		try:
 			func()

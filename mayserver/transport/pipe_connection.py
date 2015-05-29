@@ -1,6 +1,6 @@
 import os
 import multiprocessing
-from zope.interface import implements
+from zope.interface import implementer
 
 from ..imported.twisted.internet_interfaces import ITransport, IReadWriteDescriptor
 
@@ -20,8 +20,8 @@ class ChildPipe:
 		self.connection.doRead()
 
 
+@implementer(ITransport, IReadWriteDescriptor)
 class PipeConnection:
-	implements(ITransport, IReadWriteDescriptor)
 
 	def __init__(self, protocol, reactor=None):
 		self.rpipe, self.wpipe = multiprocessing.Pipe()

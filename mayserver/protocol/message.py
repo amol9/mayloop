@@ -4,7 +4,7 @@ from ..imported.twisted.internet_protocol import Protocol
 
 class Message(Protocol):
 	def __init__(self):
-		self._buffer = ''
+		self._buffer = b''
 
 
 	def messageReceived(self, message):

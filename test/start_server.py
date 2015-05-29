@@ -3,7 +3,8 @@ import logging
 from mayserver.server import Server
 from mayserver.config import Config
 from mayserver.imported.twisted.internet_protocol import Factory
-from .test_protocol import TestServer
+from .test_protocol import TestServer, RawData
+
 
 
 def start_only_telnet():
@@ -14,9 +15,9 @@ def start_only_telnet():
 	server.start()
 
 
-def start_test_server():
+def start_test_server(protocol=TestServer):
 	config = Config()
-	config.add_service('', 40002, Factory.forProtocol(TestServer))
+	config.add_service('', 40002, Factory.forProtocol(protocol))
 	config.start_logger(level=logging.DEBUG)
 
 	server = Server(config)

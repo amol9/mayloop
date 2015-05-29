@@ -1,4 +1,4 @@
-from zope.interface import implements
+from zope.interface import implementer
 import socket
 from time import time
 
@@ -31,8 +31,8 @@ def socket_call(func, args=()):
 			log.error(str(e))
 
 
+@implementer(ITCPTransport, IReadWriteDescriptor, IConsumer)
 class TCPConnection():
-	implements(ITCPTransport, IReadWriteDescriptor, IConsumer)
 
 	def __init__(self, socket, protocol):
 		self.socket 				= socket

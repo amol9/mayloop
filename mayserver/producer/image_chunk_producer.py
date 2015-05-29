@@ -1,4 +1,4 @@
-from zope.interface import implements
+from zope.interface import implementer
 import struct
 
 from ..imported.twisted.internet_interfaces import IPullProducer
@@ -7,8 +7,8 @@ from .protobuf.server_pb2 import Response
 from ..wallpaper_image import WPImageError
 
 
+@implementer(IPullProducer)
 class ImageChunkProducer:
-	implements(IPullProducer)
 
 	def __init__(self, transport, wp_image):
 		self._transport = transport
