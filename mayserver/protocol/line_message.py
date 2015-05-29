@@ -14,13 +14,13 @@ class LineMessage(Message):
 		self._buffer += data
 		if len(self._buffer) > get_limits().max_line_message_length:
 			self.messageError(self._buffer)
-			self._buffer = ''
+			self._buffer = b''
 
-		if self._buffer.endswith(os.linesep):
+		if self._buffer.endswith(str.encode(os.linesep)):
 			self.messageReceived(self._buffer.rstrip())
-			self._buffer = ''
+			self._buffer = b''
 
 
 	def connectionLost(self, reason=None):
-		self._buffer = ''
+		self._buffer = b''
 
