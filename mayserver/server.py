@@ -61,13 +61,30 @@ class Server():
 				raise StartError(msg)
 
 
+	def start_pipes(self):
+		for pipe in self._config.pipes:
+			protocol = pipe.factory.buildProtocol()
+			transport = PipeConnection(protocol)
+			protocol.makeConnection(transport)
+			pipe.transport = transport
+
+			self.in_pipes.append(transport.getReadPipe())
+
+
 	def start(self):
 		log.info('starting server...')
 
 		self._stats.start_time = time()
 		self.start_server_sockets()
 		self.start_telnet_server_socket()
+		self.start_pipes()
+		self.do_after_start()
 		self.start_select_loop()
+
+
+	def do_after_start(self):
+		if self._config.after_start is not None:
+			self._config.after_start.execute()
 
 
 	def start_select_loop(self):

@@ -1,5 +1,7 @@
 import struct
 import socket
+from time import sleep
+
 
 def send_something():
 	data = 'hello'
@@ -10,7 +12,12 @@ def send_something():
 
 	connection.send(message)
 	res = connection.recv(512)
-	print(res)
+	print('1: '+ res[4:].decode('utf-8'))
+
+	sleep(30)
+	connection.send(message)
+	res = connection.recv(512)
+	print('2: '+ res[4:].decode('utf-8'))
 
 
 send_something()
