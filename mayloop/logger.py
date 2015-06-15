@@ -4,7 +4,7 @@ import logging
 
 class Logger():
 	def __init__(self):
-		self._log = logging.getLogger('mayserver')
+		self._log = logging.getLogger('mayloop')
 		self._log.propagate = False
 		self._to_stdout = False
 

@@ -1,13 +1,13 @@
-=====
-wallp
-=====
+=======
+mayloop
+=======
 
-An asynchronous socket / pipe server.
+An asynchronous i/o library.
 
 
 Features
 ========
-* Telnet interface to control the server.
+* Telnet interface to control the loop.
 
 
 Usage
@@ -16,6 +16,6 @@ Usage
 
 Download
 ========
-* PyPI: http://pypi.python.org/pypi/mayserver
-* Source: https://github.com/amol9/mayserver
+* PyPI: http://pypi.python.org/pypi/mayloop
+* Source: https://github.com/amol9/mayloop
 

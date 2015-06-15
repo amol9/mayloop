@@ -3,7 +3,7 @@ from time import time
 import os
 
 
-class ServerStats():
+class Stats():
 	def __init__(self):
 		self.peak_clients = 0
 		self.start_time = None

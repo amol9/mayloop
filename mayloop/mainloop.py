@@ -4,7 +4,7 @@ from os.path import exists
 from time import time
 
 from .select_call import SelectCall, SelectError
-from .stats import ServerStats
+from .stats import Stats
 from .limits import get_limits
 from .server_helper import StartError
 from .transport.tcp_connection import TCPConnection, HangUp, ConnectionAbort
@@ -19,13 +19,13 @@ def scheduled_task_placeholder():
 	pass
 
 
-class Server():
+class MainLoop():
 	def __init__(self, config):
 		self._config 			= config
 		self._servers 			= []
 		self._server_to_factory 	= {}
 		self._limits 			= get_limits()
-		self._stats 			= ServerStats()
+		self._stats 			= Stats()
 
 		self._client_list 		= []
 		self._telnet_client_list 	= []
@@ -72,7 +72,7 @@ class Server():
 
 
 	def start(self):
-		log.info('starting server...')
+		log.info('starting mainloop...')
 
 		self._stats.start_time = time()
 		self.start_server_sockets()
@@ -89,7 +89,7 @@ class Server():
 
 	def start_select_loop(self):
 		select = SelectCall()
-		self._pause_server = False
+		self._pause_mainloop = False
 
 		while True:
 			readable = writeable = exceptions = None
@@ -172,7 +172,7 @@ class Server():
 
 
 	def handle_incoming_connection(self, server):
-		if self.server_full():
+		if self.fds_full():
 			log.error('connections full')
 			return
 
@@ -197,22 +197,22 @@ class Server():
 		clist.append(transport)
 
 
-	def server_full(self):
+	def fds_full(self):
 		return self._limits.fds_full(self._stats.open_fds)
 
 
 	def get_in_list(self):
-		wallp_server = self._servers + self.client_list + self.in_pipes
+		others_list = self._servers + self.client_list + self.in_pipes
 		if self._config.telnet_enabled:
-			telnet_server = [self._telnet_server] + self.telnet_client_list
+			telnet_list = [self._telnet_server] + self.telnet_client_list
 		else:
-			telnet_server = []
+			telnet_list = []
 
-		return (wallp_server if not self._pause_server else []) + telnet_server
+		return (others_list if not self._pause_mainloop else []) + telnet_list
 
 
 	def get_out_list(self):
-		return (self.client_list if not self._pause_server else []) + self.telnet_client_list
+		return (self.client_list if not self._pause_mainloop else []) + self.telnet_client_list
 
 
 	def get_client_list(self):
@@ -228,7 +228,7 @@ class Server():
 
 
 	def stop(self):
-		self._pause_server = True
+		self._pause_mainloop = True
 
 		for c in self.client_list:
 			self.transport_call(c.abortConnection)
@@ -238,11 +238,11 @@ class Server():
 
 	def hot_start(self):
 		self.start_server_socket()
-		self._pause_server = False
+		self._pause_mainloop = False
 
 
 	def pause(self):
-		self._pause_server = True
+		self._pause_mainloop = True
 
 
 	def resume(self):
@@ -252,5 +252,4 @@ class Server():
 	client_list 		= property(get_client_list)
 	telnet_client_list 	= property(get_telnet_client_list)
 	in_pipes		= property(get_in_pipes)
-
 
