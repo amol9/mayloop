@@ -12,13 +12,13 @@ entry_points = {}
 
 setup(	name='mayloop',
 	version=__version__,
-	description='An asynchronous socket server.',
+	description='An asynchronous i/o library.',
 	author='Amol Umrale',
 	author_email='babaiscool@gmail.com',
 	url='http://pypi.python.org/pypi/mayloop/',
-	scripts=find_packages(),
-	entry_points = entry_points,
-	install_requires=[''],
+	packages=find_packages(),
+	entry_points=entry_points,
+	install_requires=['zope.interface', 'mutils'],
 	classifiers=[
 		'Development Status :: 4 - Beta',
 		'Environment :: Console',
