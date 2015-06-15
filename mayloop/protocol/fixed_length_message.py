@@ -36,5 +36,5 @@ class FixedLengthMessage(Message):
 
 
 	def sendMessage(self, data):
-		message = struct.pack('>i', len(data)) + bytes(data)
+		message = struct.pack('>i', len(data)) + data.encode('utf-8')
 		self.transport.write(message)

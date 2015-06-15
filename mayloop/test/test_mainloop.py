@@ -1,15 +1,21 @@
 from unittest import TestCase, main as ut_main, skip
 import logging
 from threading import Thread
-from Queue import Queue
 from multiprocessing import Process
 from time import sleep
+
+from mutils.system import is_py3
 
 from mayloop.mainloop import MainLoop
 from mayloop.config import Config
 from mayloop.imported.twisted.internet_protocol import Factory
 from .mock_protocols import ReturnFixedMessage
 from .mock_client import Client
+
+if is_py3():
+	from queue import Queue
+else:
+	from Queue import Queue
 
 
 class TestMainLoop(TestCase):

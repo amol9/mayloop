@@ -167,8 +167,8 @@ class MainLoop():
 		if bad_fds is None:
 			return
 
-		client_list = self._shared_state.client_list	
-		map(client_list.remove, bad_fds)
+		for bad_fd in bad_fds:
+			self.client_list.remove(bad_fd)
 
 
 	def handle_incoming_connection(self, server):
