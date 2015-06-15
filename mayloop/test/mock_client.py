@@ -16,7 +16,7 @@ class Client:
 		message = struct.pack('>i', len(data)) + str.encode(data)
 
 		self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.connection.connect(('192.168.0.101', 40002))
+		self.connection.connect((self.host, self.port))
 
 		self.connection.send(message)
 		res = self.connection.recv(512)

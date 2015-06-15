@@ -1,7 +1,7 @@
 import os
 
 from .line_message import LineMessage
-from ..server_helper import StartError
+from ..exc import StartError
 
 
 class TelnetServer(LineMessage):

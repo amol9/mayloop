@@ -1,8 +1,9 @@
-from unittest import TestCase, main as ut_main
+from unittest import TestCase, main as ut_main, skip
 import logging
 from threading import Thread
 from Queue import Queue
 from multiprocessing import Process
+from time import sleep
 
 from mayloop.mainloop import MainLoop
 from mayloop.config import Config
@@ -12,25 +13,29 @@ from .mock_client import Client
 
 
 class TestMainLoop(TestCase):
-	server_process = None
-	port = 40002
-	multiple_client_counts = [10, 100]
+	server_process 		= None
+	port 			= 40002
+	multiple_client_counts 	= [10, 100]
+	exp_response 		= 'test response'
+	server_logfile		= 'server.log'
 
 	@classmethod
 	def setUpClass(cls):
-		pass
+		ReturnFixedMessage.message = cls.exp_response
 
 
 	@classmethod
 	def tearDownClass(cls):
-		if cls.server is not None:
-			print('press ^C to quit server)
+		if cls.server_process is not None:
+			print('stopping server..')
+			cls.server_process.terminate()
 
 
-	def start_server(port):
+	@classmethod
+	def start_server_loop(cls, port):
 		config = Config()
 		config.add_service('', port, Factory.forProtocol(ReturnFixedMessage))
-		config.start_logger(level=logging.DEBUG)
+		config.start_logger(target=cls.server_logfile, level=logging.DEBUG)
 
 		server = MainLoop(config)
 		server.start()
@@ -39,42 +44,36 @@ class TestMainLoop(TestCase):
 	def start_server(test_func):
 		def new_func(self):
 			if self.server_process is None:
-				self.server_process = Process(target=start_server, args=(self.port,))
-				self.server_process.start()
+				print('starting server..')
+				TestMainLoop.server_process = Process(target=TestMainLoop.start_server_loop, args=(self.port,))
+				TestMainLoop.server_process.start()
+				sleep(1)
 			test_func(self)
 		return new_func
 
 
 	@start_server
 	def test_single_client(self):
-		exp_response = 'test response'
-		ReturnFixedMessage.message = exp_response
 		client = Client('', self.port)
 		client.connect()
 		client.close()
 
-		self.assertEquals(client.response, exp_response)
+		self.assertEquals(client.response, self.exp_response)
 
 
 	@start_server
 	def test_multiple_clients_serial(self):
-		exp_response = 'test response'
-		ReturnFixedMessage.message = exp_response
-
 		for i in self.multiple_client_counts:
 			for j in range(i):
 				client = Client('', self.port)
 				client.connect()
 				client.close()
-
-				self.assertEquals(client.response, exp_response)
+				
+				self.assertEquals(client.response, self.exp_response)
 
 	
 	@start_server
 	def test_multiple_clients_parallel(self):
-		exp_response = 'test response'
-		ReturnFixedMessage.message = exp_response
-
 		def client_thread(port, client_id, results):
 			client = Client('', port)
 			client.connect()
@@ -88,11 +87,16 @@ class TestMainLoop(TestCase):
 			results = Queue()
 			for j in range(i):
 				t = Thread(target=client_thread, args=(self.port, j, results))
+				t.start()
 				threads.append(t)
 
 			for j in range(i):
 				threads[j].join()
 				client_id, response = results.get()
-				self.assertEquals(response, exp_response, msg='client %d failed'%client_id)
+				self.assertEquals(response, self.exp_response, msg='client %d failed'%client_id)
 
+
+
+if __name__ == '__main__':
+	ut_main()
 
