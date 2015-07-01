@@ -77,7 +77,7 @@ class TestMainLoop(TestCase):
 				
 				self.assertEquals(client.response, self.exp_response)
 
-	
+
 	@start_server
 	def test_multiple_clients_parallel(self):
 		def client_thread(port, client_id, results):
@@ -95,6 +95,7 @@ class TestMainLoop(TestCase):
 				t = Thread(target=client_thread, args=(self.port, j, results))
 				t.start()
 				threads.append(t)
+				if (j+1)%10 == 0: sleep(0.01)
 
 			for j in range(i):
 				threads[j].join()
